@@ -71,16 +71,8 @@ Example:
     args = parser.parse_args()
 
     # Validate inputs exist
-    person_path = Path(args.person_image)
-    garment_path = Path(args.garment_image)
     weights_path = Path(args.weights_dir)
 
-    if not person_path.exists():
-        print(f"Error: Person image not found: {person_path}")
-        sys.exit(1)
-    if not garment_path.exists():
-        print(f"Error: Garment image not found: {garment_path}")
-        sys.exit(1)
     if not weights_path.exists():
         print(f"Error: Weights directory not found: {weights_path}")
         print(f"Run: python scripts/download_weights.py --weights-dir {args.weights_dir}")
@@ -88,8 +80,19 @@ Example:
 
     # Load images
     print("Loading images...")
-    person_image = Image.open(args.person_image).convert("RGB")
-    garment_image = Image.open(args.garment_image).convert("RGB")
+    
+    def load_image(path_or_url):
+        if str(path_or_url).startswith("http"):
+            import requests
+            from io import BytesIO
+            response = requests.get(path_or_url)
+            response.raise_for_status()
+            return Image.open(BytesIO(response.content)).convert("RGB")
+        else:
+            return Image.open(path_or_url).convert("RGB")
+
+    person_image = load_image(args.person_image)
+    garment_image = load_image(args.garment_image)
 
     # Create pipeline (loads all models internally)
     print(f"Loading pipeline from {args.weights_dir}...")

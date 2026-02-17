@@ -1,4 +1,4 @@
-# FASHN VTON v1.5: Efficient Maskless Virtual Try-On in Pixel Space
+# FASHN VTON v1.5: Эффективная виртуальная примерка без масок в пиксельном пространстве
 
 <div align="center">
   <a href="https://fashn.ai/research/vton-1-5"><img src='https://img.shields.io/badge/Project-Page-1A1A1A?style=flat' alt='Project Page'></a>&ensp;
@@ -8,21 +8,21 @@
   <a href="LICENSE"><img src='https://img.shields.io/badge/License-Apache--2.0-gray?style=flat' alt='License'></a>
 </div>
 
-by [FASHN AI](https://fashn.ai)
+от [FASHN AI](https://fashn.ai)
 
-Virtual try-on model that generates photorealistic images directly in pixel space without requiring segmentation masks.
+Модель виртуальной примерки, которая генерирует фотореалистичные изображения непосредственно в пиксельном пространстве, не требуя масок сегментации.
 
 <p align="center">
-  <img src="https://static.fashn.ai/repositories/fashn-vton-v15/results/hero_collage.webp" alt="FASHN VTON v1.5 examples" width="900">
+  <img src="https://static.fashn.ai/repositories/fashn-vton-v15/results/hero_collage.webp" alt="FASHN VTON v1.5 примеры" width="900">
 </p>
 
-This repo contains minimal inference code to run virtual try-on with the FASHN VTON v1.5 model weights. Given a person image and a garment image, the model generates a photorealistic image of the person wearing the garment. Supports both model photos and flat-lay product shots as garment inputs.
+Этот репозиторий содержит минимальный код для запуска инференса виртуальной примерки с весами модели FASHN VTON v1.5. На вход подается изображение человека и изображение одежды, модель генерирует фотореалистичное изображение человека в этой одежде. Поддерживаются как фотографии на моделях, так и фото одежды в раскладке (flat-lay).
 
 ---
 
-## Local Installation
+## Локальная установка
 
-We recommend using a virtual environment:
+Мы рекомендуем использовать виртуальное окружение:
 
 ```bash
 git clone https://github.com/fashn-AI/fashn-vton-1.5.git
@@ -31,7 +31,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e .
 ```
 
-**Note:** Installation includes `onnxruntime-gpu` for GPU-accelerated pose detection. Ensure CUDA is properly configured on your system. For CPU-only environments, replace with the CPU version:
+**Примечание:** Установка включает `onnxruntime-gpu` для определения позы с ускорением на GPU. Убедитесь, что CUDA правильно настроена в вашей системе. Для окружений только с CPU (например, macOS), замените на версию для CPU:
 
 ```bash
 pip uninstall onnxruntime-gpu && pip install onnxruntime
@@ -39,47 +39,60 @@ pip uninstall onnxruntime-gpu && pip install onnxruntime
 
 ---
 
-## Model Weights
+## Развертывание через Docker (Рекомендуется)
 
-Download the required model weights (~2 GB total):
+Для быстрого запуска на сервере с GPU:
+
+1. Настройте сервер по инструкции в [DEPLOY.md](DEPLOY.md).
+2. Соберите и запустите контейнер:
+   ```bash
+   docker compose up -d --build
+   ```
+3. Протестируйте работу по инструкции в [TESTING.md](TESTING.md).
+
+---
+
+## Веса модели
+
+Скачайте необходимые веса модели (~2 GB всего):
 
 ```bash
 python scripts/download_weights.py --weights-dir ./weights
 ```
 
-This downloads:
-- `model.safetensors` — TryOnModel weights from [HuggingFace](https://huggingface.co/fashn-ai/fashn-vton-1.5)
-- `dwpose/` — DWPose ONNX models for pose detection
+Это загрузит:
+- `model.safetensors` — веса TryOnModel с [HuggingFace](https://huggingface.co/fashn-ai/fashn-vton-1.5)
+- `dwpose/` — ONNX модели DWPose для определения позы
 
-**Note:** The human parser weights (~244 MB) are automatically downloaded on first use to the HuggingFace cache folder. Set `HF_HOME` to customize the location.
+**Примечание:** Веса парсера человека (~244 MB) загружаются автоматически при первом использовании в кэш HuggingFace. Установите переменную `HF_HOME`, чтобы изменить местоположение.
 
 ---
 
-## Usage
+## Использование
 
 ```python
 from fashn_vton import TryOnPipeline
 from PIL import Image
 
-# Initialize pipeline (automatically uses GPU if available)
+# Инициализация пайплайна (автоматически использует GPU, если доступен)
 pipeline = TryOnPipeline(weights_dir="./weights")
 
-# Load images
+# Загрузка изображений
 person = Image.open("examples/data/model.webp").convert("RGB")
 garment = Image.open("examples/data/garment.webp").convert("RGB")
 
-# Run inference
+# Запуск инференса
 result = pipeline(
     person_image=person,
     garment_image=garment,
-    category="tops",  # "tops" | "bottoms" | "one-pieces"
+    category="tops",  # "tops" (верх) | "bottoms" (низ) | "one-pieces" (платья/комбинезоны)
 )
 
-# Save output
+# Сохранение результата
 result.images[0].save("output.png")
 ```
 
-### CLI
+### CLI (Командная строка)
 
 ```bash
 python examples/basic_inference.py \
@@ -89,31 +102,31 @@ python examples/basic_inference.py \
     --category tops
 ```
 
-**Note:** The pipeline automatically uses GPU if available. The try-on model weights are stored in bfloat16 and will run in bf16 precision on Ampere+ GPUs (RTX 30xx/40xx, A100, H100). On older hardware or CPU, weights are converted to float32.
+**Примечание:** Пайплайн автоматически использует GPU, если оно доступно. Веса модели примерки хранятся в bfloat16 и будут работать с точностью bf16 на GPU Ampere+ (RTX 30xx/40xx, A100, H100). На более старом оборудовании или CPU веса конвертируются в float32.
 
-See [`examples/basic_inference.py`](examples/basic_inference.py) for additional options.
+Смотрите [`examples/basic_inference.py`](examples/basic_inference.py) для дополнительных опций.
 
 ---
 
-## Categories
+## Категории
 
-| Category | Description |
+| Категория | Описание |
 |----------|-------------|
-| `tops` | Upper body: t-shirts, blouses, jackets |
-| `bottoms` | Lower body: pants, skirts, shorts |
-| `one-pieces` | Full body: dresses, jumpsuits |
+| `tops` | Верхняя одежда: футболки, блузки, куртки |
+| `bottoms` | Нижняя одежда: брюки, юбки, шорты |
+| `one-pieces` | Одежда в полный рост: платья, комбинезоны |
 
 ---
 
 ## API
 
-FASHN provides a suite of [fashion AI APIs](https://fashn.ai/products/api) including virtual try-on, model generation, image-to-video, and more. See the [docs](https://docs.fashn.ai/) to get started.
+FASHN предоставляет набор [API для Fashion AI](https://fashn.ai/products/api), включая виртуальную примерку, генерацию моделей, image-to-video и многое другое. Смотрите [документацию](https://docs.fashn.ai/), чтобы начать.
 
 ---
 
-## Citation
+## Цитирование
 
-If you use FASHN VTON v1.5 in your research, please cite:
+Если вы используете FASHN VTON v1.5 в своих исследованиях, пожалуйста, цитируйте:
 
 ```bibtex
 @article{bochman2026fashnvton,
@@ -127,12 +140,11 @@ If you use FASHN VTON v1.5 in your research, please cite:
 
 ---
 
-## License
+## Лицензия
 
-Apache-2.0. See [LICENSE](LICENSE) for details.
+Apache-2.0. Смотрите [LICENSE](LICENSE) для подробностей.
 
-**Third-party components:**
+**Сторонние компоненты:**
 - [DWPose](https://github.com/IDEA-Research/DWPose) (Apache-2.0)
 - [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) (Apache-2.0)
 - [fashn-human-parser](https://github.com/fashn-AI/fashn-human-parser) ([License](https://github.com/fashn-AI/fashn-human-parser?tab=readme-ov-file#license))
-
