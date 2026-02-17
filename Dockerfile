@@ -42,6 +42,7 @@ COPY examples/ ./examples/
 # 3. Install project (will leverage onnxruntime-gpu from pyproject.toml)
 RUN pip3 install --upgrade pip && \
     pip3 install torch torchvision && \
+    pip3 install requests && \
     pip3 install -e .
 
 # Create directories for weights and outputs
