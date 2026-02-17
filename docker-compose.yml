@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  fashn-vton:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fashn-vton
+    volumes:
+      - ./public/weights:/app/weights
+      - ./public/outputs:/app/outputs
+      - ./public/inputs:/app/inputs
+      - ./public/fashn-hf-cache:/app/hf_cache
+    environment:
+      - HF_HOME=/app/hf_cache
+    # For GPU support, uncomment the following:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+volumes:
+  fashn-hf-cache:
+    name: fashn-hf-cache
