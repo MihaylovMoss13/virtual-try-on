@@ -13,14 +13,16 @@ services:
       - ./public/fashn-hf-cache:/app/hf_cache
     environment:
       - HF_HOME=/app/hf_cache
-    # For GPU support, uncomment the following:
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    # GPU Configuration
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     stdin_open: true
     tty: true
     command: /bin/bash
